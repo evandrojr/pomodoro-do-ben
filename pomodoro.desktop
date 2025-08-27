@@ -1,0 +1,7 @@
+
+[Desktop Entry]
+Name=Pomodoro
+Exec=/<path to your executable>/pomodoro-do-ben
+Icon=/<path to your icon>/icon.png
+Type=Application
+Categories=Utility;
