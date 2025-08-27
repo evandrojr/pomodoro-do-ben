@@ -67,6 +67,7 @@ func Show(cfg *config.Config) {
 			timerStr.Set(formatTime(timer.RemainingTime))
 			updateTitle(myWindow, timer)
 			updateSessionLabel(sessionLabel, timer)
+			myWindow.Canvas().Refresh(myWindow.Content())
 			if timer.RemainingTime <= 0 {
 				timer.NextState()
 				player.Play(getMediaPath("meditar/m1.aac"))
