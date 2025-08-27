@@ -2,6 +2,8 @@ package gui
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -42,7 +44,7 @@ func Show(cfg *config.Config) {
 				return
 			}
 			timer.Start()
-			player.Play("media/focar/f1.aac")
+			player.Play(getMediaPath("focar/f1.aac"))
 			notifier.Notify("Pomodoro", "Timer started!")
 		}
 	})
@@ -67,7 +69,7 @@ func Show(cfg *config.Config) {
 			updateSessionLabel(sessionLabel, timer)
 			if timer.RemainingTime <= 0 {
 				timer.NextState()
-				player.Play("media/meditar/m1.aac")
+				player.Play(getMediaPath("meditar/m1.aac"))
 				notifier.Notify("Pomodoro", "Time for a break!")
 			}
 		}
@@ -199,4 +201,19 @@ func updateSessionLabel(l *widget.Label, t *pomo.Timer) {
 		text = "Long Break"
 	}
 	l.SetText(text)
+}
+
+func getMediaPath(fileName string) string {
+	executable, err := os.Executable()
+	if err != nil {
+		return filepath.Join("media", fileName)
+	}
+	dir := filepath.Dir(executable)
+	mediaPath := filepath.Join(dir, "media", fileName)
+
+	if _, err := os.Stat(mediaPath); os.IsNotExist(err) {
+		mediaPath = filepath.Join(dir, "..", "media", fileName)
+	}
+
+	return mediaPath
 }
