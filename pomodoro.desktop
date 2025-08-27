@@ -1,7 +1,7 @@
 
 [Desktop Entry]
-Name=Pomodoro
-Exec=//home/s932743005/p/pomodoro-do-ben/pomodoro-do-ben
-Icon=/<path to your icon>/icon.png
+Name=Pomodoro do Ben
+Exec=/home/s932743005/p/pomodoro-do-ben/pomodoro-do-ben
+Icon=pomodoro-do-ben
 Type=Application
 Categories=Utility;
