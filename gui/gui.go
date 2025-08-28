@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"image/color"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
@@ -91,7 +93,10 @@ func Show(cfg *config.Config) {
 	}()
 
 	buttons := container.NewHBox(layout.NewSpacer(), startButton, pauseButton, resetButton, layout.NewSpacer())
-	pomodoroTab := container.NewVBox(timerLabel, sessionLabel, buttons)
+
+	topSpacer := canvas.NewRectangle(color.Transparent)
+	topSpacer.SetMinSize(fyne.NewSize(0, 150))
+	pomodoroTab := container.NewVBox(topSpacer, timerLabel, sessionLabel, buttons)
 
 	startOnLaunchBinding := binding.NewBool()
 	startOnLaunchBinding.Set(cfg.StartOnLaunch)
@@ -285,6 +290,8 @@ func Show(cfg *config.Config) {
 
 	myWindow.SetContent(tabs)
 	myWindow.Resize(fyne.NewSize(300, 200))
+	myWindow.SetFixedSize(true)
+	myWindow.CenterOnScreen()
 	myWindow.ShowAndRun()
 }
 

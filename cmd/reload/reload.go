@@ -24,9 +24,11 @@ func main() {
 				if !ok {
 					return
 				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					log.Println("modified file:", event.Name)
-					reload()
+				if filepath.Ext(event.Name) == ".go" {
+					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create || event.Op&fsnotify.Rename == fsnotify.Rename {
+						log.Println("modified file:", event.Name)
+						reload()
+					}
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -40,6 +42,9 @@ func main() {
 	filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		if info.IsDir() && info.Name() == ".git" {
+			return filepath.SkipDir
 		}
 		if info.IsDir() {
 			err = watcher.Add(path)

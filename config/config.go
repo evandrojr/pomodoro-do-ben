@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -55,7 +56,11 @@ func Load() (*Config, error) {
 	defer file.Close()
 
 	if err := json.NewDecoder(file).Decode(cfg); err != nil {
-		return nil, err
+		// An empty file will result in an EOF error, which we can safely ignore.
+		if err == io.EOF {
+			return cfg, nil // Return default config if file is empty
+		}
+		return nil, err // Return other errors
 	}
 
 	return cfg, nil
