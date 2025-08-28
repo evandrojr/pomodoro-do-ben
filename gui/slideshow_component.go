@@ -45,8 +45,10 @@ func (sc *SlideshowComponent) startSlideshow() {
 		defer sc.ticker.Stop()
 		for range sc.ticker.C {
 			sc.current = (sc.current + 1) % len(sc.pics)
-			sc.img.File = sc.pics[sc.current]
-			sc.img.Refresh()
+			fyne.Do(func() {
+				sc.img.File = sc.pics[sc.current]
+				sc.img.Refresh()
+			})
 		}
 	}()
 }
