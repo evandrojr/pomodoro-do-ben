@@ -15,6 +15,8 @@ const (
 type Config struct {
 	StartOnLaunch      bool          `json:"start_on_launch"`
 	AutoStartCycles    bool          `json:"auto_start_cycles"`
+	Slideshow          bool          `json:"slideshow"`
+	Animation          string        `json:"animation"`
 	InactiveEnabled1   bool          `json:"inactive_enabled_1"`
 	InactiveStart1     string        `json:"inactive_start_1"`
 	InactiveEnd1       string        `json:"inactive_end_1"`
@@ -30,6 +32,8 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		StartOnLaunch:      true,
 		AutoStartCycles:    true,
+		Slideshow:          false,
+		Animation:          "icons",
 		InactiveEnabled1:   false,
 		InactiveStart1:     "13:00",
 		InactiveEnd1:       "14:00",

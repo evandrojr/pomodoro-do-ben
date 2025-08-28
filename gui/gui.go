@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
@@ -24,10 +23,31 @@ import (
 	"pomodoro-do-ben/pomo"
 )
 
-func Show(cfg *config.Config) {
-	myApp := app.New()
-	myWindow := myApp.NewWindow(i18n.T("bens_pomodoro"))
+func newSlideshow() fyne.CanvasObject {
+	pics := []string{
+		getMediaPath("pics/p1.jpg"),
+		getMediaPath("pics/p2.jpg"),
+		getMediaPath("pics/p3.jpg"),
+	}
+	img := canvas.NewImageFromFile(pics[0])
+	img.FillMode = canvas.ImageFillContain
+	img.SetMinSize(fyne.NewSize(400, 300))
 
+	go func() {
+		ticker := time.NewTicker(3 * time.Second)
+		defer ticker.Stop()
+		i := 1
+		for range ticker.C {
+			img.File = pics[i]
+			img.Refresh()
+			i = (i + 1) % len(pics)
+		}
+	}()
+
+	return img
+}
+
+func Show(cfg *config.Config, myWindow fyne.Window) {
 	timer := pomo.NewTimer(cfg)
 
 	timerStr := binding.NewString()
@@ -69,7 +89,7 @@ func Show(cfg *config.Config) {
 				return
 			}
 			timer.Start()
-			player.Play(getMediaPath("focar/f1.aac"))
+			player.Play(getMediaPath("focar/f1.mp3"))
 			notifier.Notify(i18n.T("pomodoro"), i18n.T("time_to_focus"))
 		}
 	})
@@ -106,7 +126,7 @@ func Show(cfg *config.Config) {
 				if cfg.AutoStartCycles {
 					timer.Start()
 				}
-				player.Play(getMediaPath("meditar/m1.aac"))
+				player.Play(getMediaPath("meditar/m1.mp3"))
 				notifier.Notify(i18n.T("pomodoro"), i18n.T("time_to_break"))
 			}
 		}
@@ -205,7 +225,8 @@ func Show(cfg *config.Config) {
 
 	topSpacer := canvas.NewRectangle(color.Transparent)
 	topSpacer.SetMinSize(fyne.NewSize(0, 20))
-	pomodoroTab := container.NewVBox(
+
+	pomodoroContent := container.NewVBox(
 		topSpacer,
 		tomatoText,
 		meditationIcon,
@@ -214,6 +235,50 @@ func Show(cfg *config.Config) {
 		buttons,
 		binauralControls,
 	)
+
+	pomodoroTabContainer := container.NewMax()
+	var updatePomodoroTab func()
+
+	var animationBinding binding.String = binding.NewString()
+	animationBinding.Set(cfg.Animation)
+
+	var animationRadio *widget.RadioGroup
+
+	
+	updatePomodoroTab = func() {
+		if cfg.Animation == "slideshow" {
+			tomatoText.Hide()
+			meditationIcon.Hide()
+			pomodoroTabContainer.Objects = []fyne.CanvasObject{newSlideshow(), pomodoroContent}
+		} else {
+			tomatoText.Show()
+			meditationIcon.Show()
+			pomodoroTabContainer.Objects = []fyne.CanvasObject{pomodoroContent}
+		}
+		pomodoroTabContainer.Refresh()
+	}
+
+	animationBinding.AddListener(binding.NewDataListener(func() {
+		val, _ := animationBinding.Get()
+		cfg.Animation = val
+		cfg.Save()
+		updatePomodoroTab()
+	}))
+
+	animationRadio = widget.NewRadioGroup([]string{i18n.T("icons"), i18n.T("slideshow")}, func(s string) {
+		if s == i18n.T("icons") {
+			animationBinding.Set("icons")
+		} else {
+			animationBinding.Set("slideshow")
+		}
+	})
+	if cfg.Animation == "icons" {
+		animationRadio.SetSelected(i18n.T("icons"))
+	} else {
+		animationRadio.SetSelected(i18n.T("slideshow"))
+	}
+
+	updatePomodoroTab()
 
 	startOnLaunchBinding := binding.NewBool()
 	startOnLaunchBinding.Set(cfg.StartOnLaunch)
@@ -377,6 +442,9 @@ func Show(cfg *config.Config) {
 		widget.NewCheckWithData(i18n.T("start_on_launch"), startOnLaunchBinding),
 		widget.NewCheckWithData(i18n.T("auto_start_cycles"), autoStartCyclesBinding),
 		widget.NewSeparator(),
+		widget.NewLabel(i18n.T("animation")),
+		animationRadio,
+		widget.NewSeparator(),
 		widget.NewCheckWithData(i18n.T("inactive_period_1"), inactiveEnabled1Binding),
 		inactiveForm1,
 		widget.NewSeparator(),
@@ -397,9 +465,18 @@ func Show(cfg *config.Config) {
 	checkOvernight(inactiveStart1Binding, inactiveEnd1Binding, nextDayLabel1)
 	checkOvernight(inactiveStart2Binding, inactiveEnd2Binding, nextDayLabel2)
 
+	aboutTab := container.NewBorder(
+		container.NewVBox(
+			widget.NewLabel("Pomodoro do Ben V0.0.1"),
+		),
+		nil, nil, nil,
+		container.NewMax(newSlideshow()),
+	)
+
 	tabs := container.NewAppTabs(
-		container.NewTabItem(i18n.T("pomodoro"), pomodoroTab),
+		container.NewTabItem(i18n.T("pomodoro"), pomodoroTabContainer),
 		container.NewTabItem(i18n.T("settings"), settingsTab),
+		container.NewTabItem(i18n.T("about"), aboutTab),
 	)
 
 	if cfg.StartOnLaunch {
@@ -408,8 +485,11 @@ func Show(cfg *config.Config) {
 
 	myWindow.SetContent(tabs)
 	myWindow.Resize(fyne.NewSize(300, 200))
-	myWindow.SetFixedSize(true)
+	
 	myWindow.CenterOnScreen()
+	myWindow.SetOnClosed(func() {
+		binauralPlayer.Stop()
+	})
 	myWindow.ShowAndRun()
 }
 

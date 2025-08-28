@@ -78,7 +78,7 @@ func reload() {
 	log.Println("Building and restarting application...")
 
 	// The user's requested command sequence
-	buildAndRunCmd := "killall pomodoro-do-ben; go build . && ./pomodoro-do-ben"
+	buildAndRunCmd := "pkill pomodoro-do-ben; killall -9 pomodoro-do-ben; go build . && ./pomodoro-do-ben"
 	cmd = exec.Command("sh", "-c", buildAndRunCmd)
 
 	cmd.Stdout = os.Stdout

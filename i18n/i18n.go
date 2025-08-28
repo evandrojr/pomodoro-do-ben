@@ -32,6 +32,10 @@ var messages = map[string]Translations{
 		"long_break_duration":    "Long Break:",
 		"next_day":               "next day",
 		"next_day_tip":           "Tip: For overnight, set end time earlier than start time.",
+		"about":                  "About",
+		"animation":              "Animation",
+		"icons":                  "Icons",
+		"slideshow":              "Slideshow",
 	},
 	"es": {
 		"start":                  "Iniciar",
@@ -57,6 +61,10 @@ var messages = map[string]Translations{
 		"long_break_duration":    "Pausa larga:",
 		"next_day":               "día siguiente",
 		"next_day_tip":           "Consejo: Para pasar la noche, configure la hora de finalización antes de la hora de inicio.",
+		"about":                  "Sobre",
+		"animation":              "Animación",
+		"icons":                  "Iconos",
+		"slideshow":              "Diapositivas",
 	},
 	"zh": {
 		"start":                  "开始",
@@ -82,6 +90,10 @@ var messages = map[string]Translations{
 		"long_break_duration":    "长期休息：",
 		"next_day":               "次日",
 		"next_day_tip":           "提示：对于过夜，请将结束时间设置早于开始时间。",
+		"about":                  "关于",
+		"animation":              "动画",
+		"icons":                  "图标",
+		"slideshow":              "幻灯片",
 	},
 	"pt": {
 		"start":                  "Iniciar",
@@ -107,6 +119,10 @@ var messages = map[string]Translations{
 		"long_break_duration":    "Pausa longa:",
 		"next_day":               "dia seguinte",
 		"next_day_tip":           "Dica: Para pernoite, defina a hora de término anterior à hora de início.",
+		"about":                  "Sobre",
+		"animation":              "Animação",
+		"icons":                  "Ícones",
+		"slideshow":              "Apresentação de slides",
 	},
 }
 
