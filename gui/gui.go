@@ -95,7 +95,7 @@ func Show(cfg *config.Config) {
 	buttons := container.NewHBox(layout.NewSpacer(), startButton, pauseButton, resetButton, layout.NewSpacer())
 
 	topSpacer := canvas.NewRectangle(color.Transparent)
-	topSpacer.SetMinSize(fyne.NewSize(0, 150))
+	topSpacer.SetMinSize(fyne.NewSize(0, 20))
 	pomodoroTab := container.NewVBox(topSpacer, timerLabel, sessionLabel, buttons)
 
 	startOnLaunchBinding := binding.NewBool()
@@ -256,7 +256,7 @@ func Show(cfg *config.Config) {
 		widget.NewFormItem(i18n.T("long_break_duration"), widget.NewEntryWithData(longBreakDurationBinding)),
 	)
 
-	settingsTab := container.NewVBox(
+	settingsContent := container.NewVBox(
 		widget.NewCheckWithData(i18n.T("start_on_launch"), startOnLaunchBinding),
 		widget.NewCheckWithData(i18n.T("auto_start_cycles"), autoStartCyclesBinding),
 		widget.NewSeparator(),
@@ -270,6 +270,7 @@ func Show(cfg *config.Config) {
 		widget.NewLabel(i18n.T("durations_in_minutes")),
 		durationForm,
 	)
+	settingsTab := container.NewVScroll(settingsContent)
 
 	// Perform initial check on load
 	checkTimeValidity(inactiveStart1Binding, validIcon1s)
