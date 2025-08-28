@@ -13,6 +13,7 @@ const (
 
 type Config struct {
 	StartOnLaunch      bool          `json:"start_on_launch"`
+	AutoStartCycles    bool          `json:"auto_start_cycles"`
 	InactiveStart      string        `json:"inactive_start"`
 	InactiveEnd        string        `json:"inactive_end"`
 	FocusDuration      time.Duration `json:"focus_duration"`
@@ -23,6 +24,7 @@ type Config struct {
 func Load() (*Config, error) {
 	cfg := &Config{
 		StartOnLaunch:      true,
+		AutoStartCycles:    true,
 		InactiveStart:      "13:00",
 		InactiveEnd:        "14:00",
 		FocusDuration:      25 * time.Minute,

@@ -70,6 +70,9 @@ func Show(cfg *config.Config) {
 			myWindow.Canvas().Refresh(myWindow.Content())
 			if timer.RemainingTime <= 0 {
 				timer.NextState()
+				if cfg.AutoStartCycles {
+					timer.Start()
+				}
 				player.Play(getMediaPath("meditar/m1.aac"))
 				notifier.Notify("Pomodoro", "Time for a break!")
 			}
@@ -83,6 +86,13 @@ func Show(cfg *config.Config) {
 	startOnLaunchBinding.Set(cfg.StartOnLaunch)
 	startOnLaunchBinding.AddListener(binding.NewDataListener(func() {
 		cfg.StartOnLaunch, _ = startOnLaunchBinding.Get()
+		cfg.Save()
+	}))
+
+	autoStartCyclesBinding := binding.NewBool()
+	autoStartCyclesBinding.Set(cfg.AutoStartCycles)
+	autoStartCyclesBinding.AddListener(binding.NewDataListener(func() {
+		cfg.AutoStartCycles, _ = autoStartCyclesBinding.Get()
 		cfg.Save()
 	}))
 
@@ -129,6 +139,7 @@ func Show(cfg *config.Config) {
 
 	settingsTab := container.NewVBox(
 		widget.NewCheckWithData("Start on launch", startOnLaunchBinding),
+		widget.NewCheckWithData("Auto start cycles", autoStartCyclesBinding),
 		widget.NewLabel("Inactive Period"),
 		container.NewHBox(
 			widget.NewLabel("Start:"),
