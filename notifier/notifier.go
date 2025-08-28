@@ -9,8 +9,9 @@ import (
 
 func Notify(title, message string) {
 	cmd := exec.Command("notify-send", i18n.T(title), i18n.T(message))
-	err := cmd.Run()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println("Error sending notification:", err)
+		log.Println("notify-send output:", string(output))
 	}
 }

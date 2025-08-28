@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -6,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -60,12 +60,22 @@ var cmd *exec.Cmd
 func reload() {
 	if cmd != nil && cmd.Process != nil {
 		if err := cmd.Process.Kill(); err != nil {
-			log.Println("Error killing process:", err)
+			// On Windows, Kill is not implemented, so we need to use taskkill
+			// This is a cross-platform way to handle it
+			if runtime.GOOS == "windows" {
+				exec.Command("taskkill", "/F", "/T", "/PID", string(cmd.Process.Pid)).Run()
+			} else {
+				log.Println("Error killing process:", err)
+			}
 		}
 	}
 
-	log.Println("Reloading...")
-	cmd = exec.Command("go", "run", "./...")
+	log.Println("Building and restarting application...")
+
+	// The user's requested command sequence
+	buildAndRunCmd := "killall pomodoro-do-ben; go build . && ./pomodoro-do-ben"
+	cmd = exec.Command("sh", "-c", buildAndRunCmd)
+
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {
@@ -75,7 +85,10 @@ func reload() {
 
 	go func() {
 		if err := cmd.Wait(); err != nil {
-			log.Println("Application exited with error:", err)
+			// Don't log "signal: killed" errors, as we are the ones killing it.
+			if err.Error() != "signal: killed" {
+				log.Println("Application exited with error:", err)
+			}
 		}
 	}()
 }

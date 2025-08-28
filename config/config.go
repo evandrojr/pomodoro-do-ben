@@ -29,7 +29,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		StartOnLaunch:      true,
 		AutoStartCycles:    true,
-		InactiveEnabled1:   true,
+		InactiveEnabled1:   false,
 		InactiveStart1:     "13:00",
 		InactiveEnd1:       "14:00",
 		InactiveEnabled2:   false,
