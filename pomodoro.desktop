@@ -1,6 +1,13 @@
 
 [Desktop Entry]
 Name=Pomodoro do Ben
+Name[en]=Ben's Pomodoro
+Name[es]=Pomodoro de Ben
+Name[zh]=Ben的番茄钟
+Comment=Um simples pomodoro para o Ben
+Comment[en]=A simple pomodoro for Ben
+Comment[es]=Un simple pomodoro para Ben
+Comment[zh]=一个简单的番茄钟
 Exec=/home/s932743005/p/pomodoro-do-ben/pomodoro-do-ben
 Icon=pomodoro-do-ben
 Type=Application

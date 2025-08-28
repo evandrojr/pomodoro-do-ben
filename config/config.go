@@ -14,8 +14,12 @@ const (
 type Config struct {
 	StartOnLaunch      bool          `json:"start_on_launch"`
 	AutoStartCycles    bool          `json:"auto_start_cycles"`
-	InactiveStart      string        `json:"inactive_start"`
-	InactiveEnd        string        `json:"inactive_end"`
+	InactiveEnabled1   bool          `json:"inactive_enabled_1"`
+	InactiveStart1     string        `json:"inactive_start_1"`
+	InactiveEnd1       string        `json:"inactive_end_1"`
+	InactiveEnabled2   bool          `json:"inactive_enabled_2"`
+	InactiveStart2     string        `json:"inactive_start_2"`
+	InactiveEnd2       string        `json:"inactive_end_2"`
 	FocusDuration      time.Duration `json:"focus_duration"`
 	ShortBreakDuration time.Duration `json:"short_break_duration"`
 	LongBreakDuration  time.Duration `json:"long_break_duration"`
@@ -25,8 +29,12 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		StartOnLaunch:      true,
 		AutoStartCycles:    true,
-		InactiveStart:      "13:00",
-		InactiveEnd:        "14:00",
+		InactiveEnabled1:   true,
+		InactiveStart1:     "13:00",
+		InactiveEnd1:       "14:00",
+		InactiveEnabled2:   false,
+		InactiveStart2:     "18:00",
+		InactiveEnd2:       "19:00",
 		FocusDuration:      25 * time.Minute,
 		ShortBreakDuration: 5 * time.Minute,
 		LongBreakDuration:  15 * time.Minute,

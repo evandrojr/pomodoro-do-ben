@@ -16,6 +16,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"pomodoro-do-ben/config"
+	"pomodoro-do-ben/i18n"
 	"pomodoro-do-ben/notifier"
 	"pomodoro-do-ben/player"
 	"pomodoro-do-ben/pomo"
@@ -23,7 +24,7 @@ import (
 
 func Show(cfg *config.Config) {
 	myApp := app.New()
-	myWindow := myApp.NewWindow(config.AppName)
+	myWindow := myApp.NewWindow(i18n.T("bens_pomodoro"))
 
 	timer := pomo.NewTimer(cfg)
 
@@ -34,32 +35,32 @@ func Show(cfg *config.Config) {
 	timerLabel.Alignment = fyne.TextAlignCenter
 	timerLabel.TextStyle = fyne.TextStyle{Bold: true}
 
-	sessionLabel := widget.NewLabel("Pomodoro do Ben")
+	sessionLabel := widget.NewLabel(i18n.T("pomodoro"))
 	sessionLabel.Alignment = fyne.TextAlignCenter
 
-	startButton := widget.NewButtonWithIcon("▶️ Start", theme.MediaPlayIcon(), func() {
+	startButton := widget.NewButtonWithIcon("▶️ "+i18n.T("start"), theme.MediaPlayIcon(), func() {
 		if !timer.IsRunning {
 			if isInactive(cfg) {
-				notifier.Notify("Pomodoro", "Timer is inactive during this period.")
+				notifier.Notify(i18n.T("pomodoro"), "Timer is inactive during this period.")
 				return
 			}
 			timer.Start()
 			player.Play(getMediaPath("focar/f1.aac"))
-			notifier.Notify("Pomodoro", "Timer started!")
+			notifier.Notify(i18n.T("pomodoro"), i18n.T("time_to_focus"))
 		}
 	})
 
-	pauseButton := widget.NewButtonWithIcon("⏸️ Pause", theme.MediaPauseIcon(), func() {
+	pauseButton := widget.NewButtonWithIcon("⏸️ "+i18n.T("pause"), theme.MediaPauseIcon(), func() {
 		if timer.IsRunning {
 			timer.Stop()
-			notifier.Notify("Pomodoro", "Timer paused!")
+			notifier.Notify(i18n.T("pomodoro"), "Timer paused!")
 		}
 	})
 
-	resetButton := widget.NewButtonWithIcon("🔄 Reset", theme.MediaReplayIcon(), func() {
+	resetButton := widget.NewButtonWithIcon("🔄 "+i18n.T("stop"), theme.MediaReplayIcon(), func() {
 		timer.Reset()
 		timerStr.Set(formatTime(timer.RemainingTime))
-		notifier.Notify("Pomodoro", "Timer reset!")
+		notifier.Notify(i18n.T("pomodoro"), "Timer reset!")
 	})
 
 	go func() {
@@ -74,7 +75,7 @@ func Show(cfg *config.Config) {
 					timer.Start()
 				}
 				player.Play(getMediaPath("meditar/m1.aac"))
-				notifier.Notify("Pomodoro", "Time for a break!")
+				notifier.Notify(i18n.T("pomodoro"), i18n.T("time_to_break"))
 			}
 		}
 	}()
@@ -96,17 +97,45 @@ func Show(cfg *config.Config) {
 		cfg.Save()
 	}))
 
-	inactiveStartBinding := binding.NewString()
-	inactiveStartBinding.Set(cfg.InactiveStart)
-	inactiveStartBinding.AddListener(binding.NewDataListener(func() {
-		cfg.InactiveStart, _ = inactiveStartBinding.Get()
+	inactiveEnabled1Binding := binding.NewBool()
+	inactiveEnabled1Binding.Set(cfg.InactiveEnabled1)
+	inactiveEnabled1Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveEnabled1, _ = inactiveEnabled1Binding.Get()
 		cfg.Save()
 	}))
 
-	inactiveEndBinding := binding.NewString()
-	inactiveEndBinding.Set(cfg.InactiveEnd)
-	inactiveEndBinding.AddListener(binding.NewDataListener(func() {
-		cfg.InactiveEnd, _ = inactiveEndBinding.Get()
+	inactiveStart1Binding := binding.NewString()
+	inactiveStart1Binding.Set(cfg.InactiveStart1)
+	inactiveStart1Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveStart1, _ = inactiveStart1Binding.Get()
+		cfg.Save()
+	}))
+
+	inactiveEnd1Binding := binding.NewString()
+	inactiveEnd1Binding.Set(cfg.InactiveEnd1)
+	inactiveEnd1Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveEnd1, _ = inactiveEnd1Binding.Get()
+		cfg.Save()
+	}))
+
+	inactiveEnabled2Binding := binding.NewBool()
+	inactiveEnabled2Binding.Set(cfg.InactiveEnabled2)
+	inactiveEnabled2Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveEnabled2, _ = inactiveEnabled2Binding.Get()
+		cfg.Save()
+	}))
+
+	inactiveStart2Binding := binding.NewString()
+	inactiveStart2Binding.Set(cfg.InactiveStart2)
+	inactiveStart2Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveStart2, _ = inactiveStart2Binding.Get()
+		cfg.Save()
+	}))
+
+	inactiveEnd2Binding := binding.NewString()
+	inactiveEnd2Binding.Set(cfg.InactiveEnd2)
+	inactiveEnd2Binding.AddListener(binding.NewDataListener(func() {
+		cfg.InactiveEnd2, _ = inactiveEnd2Binding.Get()
 		cfg.Save()
 	}))
 
@@ -138,35 +167,44 @@ func Show(cfg *config.Config) {
 	}))
 
 	settingsTab := container.NewVBox(
-		widget.NewCheckWithData("Start on launch", startOnLaunchBinding),
-		widget.NewCheckWithData("Auto start cycles", autoStartCyclesBinding),
-		widget.NewLabel("Inactive Period"),
+		widget.NewCheckWithData(i18n.T("start_on_launch"), startOnLaunchBinding),
+		widget.NewCheckWithData(i18n.T("auto_start_cycles"), autoStartCyclesBinding),
+		widget.NewCheckWithData(i18n.T("inactive_period_1"), inactiveEnabled1Binding),
 		container.NewHBox(
-			widget.NewLabel("Start:"),
-			widget.NewEntryWithData(inactiveStartBinding),
+			widget.NewLabel(i18n.T("start_time")),
+			widget.NewEntryWithData(inactiveStart1Binding),
 		),
 		container.NewHBox(
-			widget.NewLabel("End:"),
-			widget.NewEntryWithData(inactiveEndBinding),
+			widget.NewLabel(i18n.T("end_time")),
+			widget.NewEntryWithData(inactiveEnd1Binding),
 		),
-		widget.NewLabel("Durations (minutes)"),
+		widget.NewCheckWithData(i18n.T("inactive_period_2"), inactiveEnabled2Binding),
 		container.NewHBox(
-			widget.NewLabel("Focus:"),
+			widget.NewLabel(i18n.T("start_time")),
+			widget.NewEntryWithData(inactiveStart2Binding),
+		),
+		container.NewHBox(
+			widget.NewLabel(i18n.T("end_time")),
+			widget.NewEntryWithData(inactiveEnd2Binding),
+		),
+		widget.NewLabel(i18n.T("durations_in_minutes")),
+		container.NewHBox(
+			widget.NewLabel(i18n.T("focus_duration")),
 			widget.NewEntryWithData(focusDurationBinding),
 		),
 		container.NewHBox(
-			widget.NewLabel("Short Break:"),
+			widget.NewLabel(i18n.T("short_break_duration")),
 			widget.NewEntryWithData(shortBreakDurationBinding),
 		),
 		container.NewHBox(
-			widget.NewLabel("Long Break:"),
+			widget.NewLabel(i18n.T("long_break_duration")),
 			widget.NewEntryWithData(longBreakDurationBinding),
 		),
 	)
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("Pomodoro", pomodoroTab),
-		container.NewTabItem("Settings", settingsTab),
+		container.NewTabItem(i18n.T("pomodoro"), pomodoroTab),
+		container.NewTabItem(i18n.T("settings"), settingsTab),
 	)
 
 	if cfg.StartOnLaunch {
@@ -186,15 +224,33 @@ func formatTime(d time.Duration) string {
 
 func isInactive(cfg *config.Config) bool {
 	now := time.Now()
-	start, err := time.Parse("15:04", cfg.InactiveStart)
-	if err != nil {
-		return false
+	if cfg.InactiveEnabled1 {
+		start, err := time.Parse("15:04", cfg.InactiveStart1)
+		if err != nil {
+			return false
+		}
+		end, err := time.Parse("15:04", cfg.InactiveEnd1)
+		if err != nil {
+			return false
+		}
+		if now.After(start) && now.Before(end) {
+			return true
+		}
 	}
-	end, err := time.Parse("15:04", cfg.InactiveEnd)
-	if err != nil {
-		return false
+	if cfg.InactiveEnabled2 {
+		start, err := time.Parse("15:04", cfg.InactiveStart2)
+		if err != nil {
+			return false
+		}
+		end, err := time.Parse("15:04", cfg.InactiveEnd2)
+		if err != nil {
+			return false
+		}
+		if now.After(start) && now.Before(end) {
+			return true
+		}
 	}
-	return now.After(start) && now.Before(end)
+	return false
 }
 
 func updateTitle(w fyne.Window, t *pomo.Timer) {
@@ -202,15 +258,15 @@ func updateTitle(w fyne.Window, t *pomo.Timer) {
 	if t.State != pomo.Pomodoro {
 		emoji = "🧘"
 	}
-	w.SetTitle(fmt.Sprintf("%s %s", emoji, config.AppName))
+	w.SetTitle(fmt.Sprintf("%s %s", emoji, i18n.T("bens_pomodoro")))
 }
 
 func updateSessionLabel(l *widget.Label, t *pomo.Timer) {
-	text := "Pomodoro"
+	text := i18n.T("pomodoro")
 	if t.State == pomo.ShortBreakState {
-		text = "Short Break"
+		text = i18n.T("break")
 	} else if t.State == pomo.LongBreakState {
-		text = "Long Break"
+		text = i18n.T("break")
 	}
 	l.SetText(text)
 }
