@@ -33,14 +33,34 @@ func Show(cfg *config.Config) {
 	timerStr := binding.NewString()
 	timerStr.Set(formatTime(timer.RemainingTime))
 
-	timerLabel := widget.NewLabelWithData(timerStr)
-	timerLabel.Alignment = fyne.TextAlignCenter
-	timerLabel.TextStyle = fyne.TextStyle{Bold: true}
+	// Criar timer com canvas.Text para ter controle sobre o tamanho e cores
+	timerText := canvas.NewText("", theme.ForegroundColor())
+	timerText.TextSize = 48
+	timerText.TextStyle = fyne.TextStyle{Bold: true}
+	timerText.Alignment = fyne.TextAlignCenter
+
+	// Binding para atualizar o timer
+	timerStr.AddListener(binding.NewDataListener(func() {
+		val, _ := timerStr.Get()
+		timerText.Text = val
+		timerText.Refresh()
+	}))
 
 	sessionBinding := binding.NewString()
 	sessionBinding.Set(i18n.T("pomodoro"))
 	sessionLabel := widget.NewLabelWithData(sessionBinding)
 	sessionLabel.Alignment = fyne.TextAlignCenter
+
+	// Criar animação do tomate
+	tomatoEmoji := "🍅"
+	tomatoText := canvas.NewText(tomatoEmoji, color.RGBA{255, 100, 100, 255})
+	tomatoText.TextSize = 64
+	tomatoText.Alignment = fyne.TextAlignCenter
+
+	// Criar animação de meditação
+	meditationIcon := canvas.NewText("🧘", color.RGBA{100, 150, 255, 255})
+	meditationIcon.TextSize = 48
+	meditationIcon.Alignment = fyne.TextAlignCenter
 
 	startButton := widget.NewButtonWithIcon("▶️ "+i18n.T("start"), theme.MediaPlayIcon(), func() {
 		if !timer.IsRunning {
@@ -92,11 +112,108 @@ func Show(cfg *config.Config) {
 		}
 	}()
 
+	// Animação melhorada do tomate
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		states := []string{"🍅", "🔴", "🍅", "⏰"}
+		index := 0
+
+		for range ticker.C {
+			if timer.IsRunning {
+				index = (index + 1) % len(states)
+				tomatoText.Text = states[index]
+
+				// Mudar cor baseada no estado do timer
+				if timer.State == pomo.Pomodoro {
+					tomatoText.Color = color.RGBA{255, 100, 100, 255} // Vermelho para pomodoro
+				} else {
+					tomatoText.Color = color.RGBA{100, 255, 100, 255} // Verde para pausa
+				}
+
+				fyne.Do(func() {
+					tomatoText.Refresh()
+				})
+			} else {
+				tomatoText.Text = "🍅"
+				tomatoText.Color = color.RGBA{200, 100, 100, 200} // Cor mais suave quando parado
+				fyne.Do(func() {
+					tomatoText.Refresh()
+				})
+			}
+		}
+	}()
+
+	// Animação de meditação
+	go func() {
+		ticker := time.NewTicker(2 * time.Second)
+		defer ticker.Stop()
+
+		meditationStates := []string{"🧘", "🕉️", "☸️", "🕯️", "🌸", "🌿"}
+		meditationIndex := 0
+
+		for range ticker.C {
+			if timer.State == pomo.ShortBreakState || timer.State == pomo.LongBreakState {
+				meditationIndex = (meditationIndex + 1) % len(meditationStates)
+				meditationIcon.Text = meditationStates[meditationIndex]
+
+				// Cores suaves para meditação
+				colors := []color.Color{
+					color.RGBA{100, 150, 255, 255}, // Azul
+					color.RGBA{150, 100, 255, 255}, // Roxo
+					color.RGBA{100, 255, 200, 255}, // Verde-azulado
+					color.RGBA{255, 200, 100, 255}, // Dourado
+					color.RGBA{255, 150, 200, 255}, // Rosa
+					color.RGBA{150, 255, 150, 255}, // Verde claro
+				}
+				meditationIcon.Color = colors[meditationIndex]
+				fyne.Do(func() {
+					meditationIcon.Refresh()
+				})
+			} else {
+				meditationIcon.Text = "🧘"
+				meditationIcon.Color = color.RGBA{100, 150, 255, 200} // Cor suave quando não meditando
+				fyne.Do(func() {
+					meditationIcon.Refresh()
+				})
+			}
+		}
+	}()
+
 	buttons := container.NewHBox(layout.NewSpacer(), startButton, pauseButton, resetButton, layout.NewSpacer())
+
+	// Player de áudios binaurais
+	binauralPlayer := player.NewBinauralPlayer()
+
+	// Botões para áudios binaurais (apenas meditação de 5 minutos)
+	binauralButton := widget.NewButtonWithIcon("🧘 Meditação (5min)", theme.MediaPlayIcon(), func() {
+		binauralPlayer.Play(getMediaPath("binaural/meditation_5min.mp3"))
+	})
+
+	stopBinauralButton := widget.NewButtonWithIcon("⏹️ Parar", theme.MediaStopIcon(), func() {
+		binauralPlayer.Stop()
+	})
+
+	// Container para controles de áudio binaural
+	binauralControls := container.NewHBox(
+		layout.NewSpacer(),
+		binauralButton,
+		stopBinauralButton,
+		layout.NewSpacer(),
+	)
 
 	topSpacer := canvas.NewRectangle(color.Transparent)
 	topSpacer.SetMinSize(fyne.NewSize(0, 20))
-	pomodoroTab := container.NewVBox(topSpacer, timerLabel, sessionLabel, buttons)
+	pomodoroTab := container.NewVBox(
+		topSpacer,
+		tomatoText,
+		meditationIcon,
+		timerText,
+		sessionLabel,
+		buttons,
+		binauralControls,
+	)
 
 	startOnLaunchBinding := binding.NewBool()
 	startOnLaunchBinding.Set(cfg.StartOnLaunch)
@@ -112,7 +229,7 @@ func Show(cfg *config.Config) {
 		cfg.Save()
 	}))
 
-	// --- Inactive Period Bindings and UI --- 
+	// --- Inactive Period Bindings and UI ---
 
 	nextDayLabel1 := widget.NewLabel("(" + i18n.T("next_day") + ")")
 	nextDayLabel1.Hide()
@@ -346,8 +463,6 @@ func updateTitle(w fyne.Window, t *pomo.Timer) {
 	}
 	w.SetTitle(fmt.Sprintf("%s %s", emoji, i18n.T("bens_pomodoro")))
 }
-
-
 
 func getMediaPath(fileName string) string {
 	executable, err := os.Executable()
