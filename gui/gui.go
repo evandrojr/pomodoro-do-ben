@@ -99,7 +99,7 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 		for range timer.Updates {
 			timerStr.Set(formatTime(timer.RemainingTime))
 
-			// updateTitle(myWindow, timer) // FIXME: This is not thread-safe and causes crashes.
+			updateTitle(myWindow, timer, cfg.Animation == "slideshow") // Update title based on animation mode
 
 			newSessionText := i18n.T("pomodoro")
 			if timer.State == pomo.ShortBreakState {
@@ -237,6 +237,7 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 			tomatoText.Hide()
 			meditationIcon.Hide()
 			sessionLabel.Hide() // Hide session label
+			timerText.Hide() // Hide timer text in main content
 			timerText.TextSize = 14 // Reduced by 70%
 
 			// Stop previous slideshow if it exists
@@ -247,6 +248,7 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 			pomodoroTabContainer.Objects = []fyne.CanvasObject{
 				container.NewBorder(nil, pomodoroContent, nil, nil, currentSlideshow.GetContent()),
 			}
+			updateTitle(myWindow, timer, true) // Update title for slideshow mode
 		} else {
 			// Stop slideshow if it exists and we are switching away
 			if currentSlideshow != nil {
@@ -256,8 +258,10 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 			tomatoText.Show()
 			meditationIcon.Show()
 			sessionLabel.Show() // Show session label
+				timerText.Show() // Show timer text in main content
 			timerText.TextSize = 48 // Original size
 			pomodoroTabContainer.Objects = []fyne.CanvasObject{pomodoroContent}
+				updateTitle(myWindow, timer, false) // Revert title for icons mode
 		}
 		pomodoroTabContainer.Refresh()
 	}
@@ -488,7 +492,7 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 	}
 
 	myWindow.SetContent(tabs)
-	myWindow.Resize(fyne.NewSize(300, 200))
+	myWindow.Resize(fyne.NewSize(300, 400))
 	
 	myWindow.CenterOnScreen()
 	myWindow.SetOnClosed(func() {
@@ -540,12 +544,18 @@ func isInactive(cfg *config.Config) bool {
 	return false
 }
 
-func updateTitle(w fyne.Window, t *pomo.Timer) {
-	emoji := "🍅"
-	if t.State != pomo.Pomodoro {
-		emoji = "🧘"
-	}
-	w.SetTitle(fmt.Sprintf("%s %s", emoji, i18n.T("bens_pomodoro")))
+func updateTitle(w fyne.Window, t *pomo.Timer, inSlideshowMode bool) {
+	fyne.Do(func() {
+		if inSlideshowMode {
+			w.SetTitle(fmt.Sprintf("🍅 %s - %s", i18n.T("bens_pomodoro"), formatTime(t.RemainingTime)))
+		} else {
+			emoji := "🍅"
+			if t.State != pomo.Pomodoro {
+				emoji = "🧘"
+			}
+			w.SetTitle(fmt.Sprintf("%s %s", emoji, i18n.T("bens_pomodoro")))
+		}
+	})
 }
 
 func getMediaPath(fileName string) string {
