@@ -245,11 +245,14 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 	var animationRadio *widget.RadioGroup
 
 	
-	updatePomodoroTab = func() {
+	
+		updatePomodoroTab = func() {
 		if cfg.Animation == "slideshow" {
 			tomatoText.Hide()
 			meditationIcon.Hide()
-			pomodoroTabContainer.Objects = []fyne.CanvasObject{newSlideshow(), pomodoroContent}
+			pomodoroTabContainer.Objects = []fyne.CanvasObject{
+				container.NewBorder(nil, pomodoroContent, nil, nil, newSlideshow()),
+			}
 		} else {
 			tomatoText.Show()
 			meditationIcon.Show()
