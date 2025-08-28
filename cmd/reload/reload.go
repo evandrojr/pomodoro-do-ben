@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -68,7 +69,7 @@ func reload() {
 			// On Windows, Kill is not implemented, so we need to use taskkill
 			// This is a cross-platform way to handle it
 			if runtime.GOOS == "windows" {
-				exec.Command("taskkill", "/F", "/T", "/PID", string(cmd.Process.Pid)).Run()
+				exec.Command("taskkill", "/F", "/T", "/PID", strconv.Itoa(cmd.Process.Pid)).Run()
 			} else {
 				log.Println("Error killing process:", err)
 			}

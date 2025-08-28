@@ -23,29 +23,15 @@ import (
 	"pomodoro-do-ben/pomo"
 )
 
-func newSlideshow() fyne.CanvasObject {
-	pics := []string{
+func getSlideshowImagePaths() []string {
+	return []string{
 		getMediaPath("pics/p1.jpg"),
 		getMediaPath("pics/p2.jpg"),
 		getMediaPath("pics/p3.jpg"),
 	}
-	img := canvas.NewImageFromFile(pics[0])
-	img.FillMode = canvas.ImageFillContain
-	img.SetMinSize(fyne.NewSize(400, 300))
-
-	go func() {
-		ticker := time.NewTicker(3 * time.Second)
-		defer ticker.Stop()
-		i := 1
-		for range ticker.C {
-			img.File = pics[i]
-			img.Refresh()
-			i = (i + 1) % len(pics)
-		}
-	}()
-
-	return img
 }
+
+
 
 func Show(cfg *config.Config, myWindow fyne.Window) {
 	timer := pomo.NewTimer(cfg)
@@ -251,7 +237,8 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 			tomatoText.Hide()
 			meditationIcon.Hide()
 			pomodoroTabContainer.Objects = []fyne.CanvasObject{
-				container.NewBorder(nil, pomodoroContent, nil, nil, newSlideshow()),
+				container.NewBorder(nil, pomodoroContent, nil, nil, NewSlideshowComponent(getSlideshowImagePaths()).GetContent()),
+
 			}
 		} else {
 			tomatoText.Show()
@@ -473,7 +460,7 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 			widget.NewLabel("Pomodoro do Ben V0.0.1"),
 		),
 		nil, nil, nil,
-		container.NewMax(newSlideshow()),
+		container.NewMax(NewSlideshowComponent(getSlideshowImagePaths()).GetContent()),
 	)
 
 	tabs := container.NewAppTabs(
