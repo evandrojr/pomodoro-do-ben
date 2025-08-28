@@ -33,6 +33,8 @@ func getSlideshowImagePaths() []string {
 
 
 
+var currentSlideshow *SlideshowComponent // Declare outside Show function
+
 func Show(cfg *config.Config, myWindow fyne.Window) {
 	timer := pomo.NewTimer(cfg)
 
@@ -230,19 +232,31 @@ func Show(cfg *config.Config, myWindow fyne.Window) {
 
 	var animationRadio *widget.RadioGroup
 
-	
-	
-		updatePomodoroTab = func() {
+	updatePomodoroTab = func() {
 		if cfg.Animation == "slideshow" {
 			tomatoText.Hide()
 			meditationIcon.Hide()
-			pomodoroTabContainer.Objects = []fyne.CanvasObject{
-				container.NewBorder(nil, pomodoroContent, nil, nil, NewSlideshowComponent(getSlideshowImagePaths()).GetContent()),
+			sessionLabel.Hide() // Hide session label
+			timerText.TextSize = 14 // Reduced by 70%
 
+			// Stop previous slideshow if it exists
+			if currentSlideshow != nil {
+				currentSlideshow.StopSlideshow()
+			}
+			currentSlideshow = NewSlideshowComponent(getSlideshowImagePaths())
+			pomodoroTabContainer.Objects = []fyne.CanvasObject{
+				container.NewBorder(nil, pomodoroContent, nil, nil, currentSlideshow.GetContent()),
 			}
 		} else {
+			// Stop slideshow if it exists and we are switching away
+			if currentSlideshow != nil {
+				currentSlideshow.StopSlideshow()
+				currentSlideshow = nil // Clear reference
+			}
 			tomatoText.Show()
 			meditationIcon.Show()
+			sessionLabel.Show() // Show session label
+			timerText.TextSize = 48 // Original size
 			pomodoroTabContainer.Objects = []fyne.CanvasObject{pomodoroContent}
 		}
 		pomodoroTabContainer.Refresh()
