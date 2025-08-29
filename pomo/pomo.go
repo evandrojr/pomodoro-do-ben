@@ -22,6 +22,7 @@ type Timer struct {
 	ticker        *time.Ticker
 	config        *config.Config
 	Updates       chan struct{}
+	pomodoroCount int // Tracks completed pomodoros
 }
 
 func NewTimer(cfg *config.Config) *Timer {
@@ -31,6 +32,7 @@ func NewTimer(cfg *config.Config) *Timer {
 		RemainingTime: cfg.FocusDuration,
 		config:        cfg,
 		Updates:       make(chan struct{}),
+		pomodoroCount: 0, // Initialize pomodoro count
 	}
 }
 
@@ -70,14 +72,21 @@ func (t *Timer) Ticker() *time.Ticker {
 func (t *Timer) NextState() {
 	switch t.State {
 	case Pomodoro:
-		t.State = ShortBreakState
-		t.Duration = t.config.ShortBreakDuration
+		t.pomodoroCount++ // Increment pomodoro count after a completed Pomodoro
+		if t.pomodoroCount%t.config.LongBreakInterval == 0 {
+			t.State = LongBreakState
+			t.Duration = t.config.LongBreakDuration
+		} else {
+			t.State = ShortBreakState
+			t.Duration = t.config.ShortBreakDuration
+		}
 	case ShortBreakState:
 		t.State = Pomodoro
 		t.Duration = t.config.FocusDuration
 	case LongBreakState:
 		t.State = Pomodoro
 		t.Duration = t.config.FocusDuration
+		t.pomodoroCount = 0 // Reset pomodoro count after a long break
 	}
 	t.Reset()
 }

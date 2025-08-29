@@ -34,8 +34,10 @@ func getSlideshowImagePaths() []string {
 
 
 var currentSlideshow *SlideshowComponent // Declare outside Show function
+var timeNow = time.Now // For testing purposes
 
 func Show(cfg *config.Config, myWindow fyne.Window) {
+	// This is a test comment to trigger reload
 	timer := pomo.NewTimer(cfg)
 
 	timerStr := binding.NewString()
@@ -508,30 +510,33 @@ func formatTime(d time.Duration) string {
 }
 
 func isInactive(cfg *config.Config) bool {
-	now := time.Now()
+	now := timeNow()
 
 	check := func(enabled bool, startStr, endStr string) bool {
 		if !enabled {
 			return false
 		}
-		start, err1 := time.Parse("15:04", startStr)
-		end, err2 := time.Parse("15:04", endStr)
+
+		parsedStart, err1 := time.Parse("15:04", startStr)
+		parsedEnd, err2 := time.Parse("15:04", endStr)
 		if err1 != nil || err2 != nil {
 			return false // Don't be inactive if times are invalid
 		}
 
-		// Handle overnight period
-		if start.After(end) {
-			if now.After(start) || now.Before(end) {
-				return true
-			}
-		} else {
-			// Handle same-day period
-			if now.After(start) && now.Before(end) {
-				return true
-			}
+		// Get today's date components
+		year, month, day := now.Date()
+
+		// Create start and end times for today
+		startToday := time.Date(year, month, day, parsedStart.Hour(), parsedStart.Minute(), 0, 0, now.Location())
+		endToday := time.Date(year, month, day, parsedEnd.Hour(), parsedEnd.Minute(), 0, 0, now.Location())
+
+		if parsedStart.Before(parsedEnd) || parsedStart.Equal(parsedEnd) { // Same day period (e.g., 09:00 - 17:00)
+			return (now.After(startToday) || now.Equal(startToday)) && now.Before(endToday)
+		} else { // Overnight period (e.g., 22:00 - 06:00)
+			// Period is from startToday to midnight, OR from midnight to endToday
+			// So, check if 'now' is after startToday (today) OR before endToday (tomorrow)
+			return (now.After(startToday) || now.Equal(startToday)) || now.Before(endToday)
 		}
-		return false
 	}
 
 	if check(cfg.InactiveEnabled1, cfg.InactiveStart1, cfg.InactiveEnd1) {

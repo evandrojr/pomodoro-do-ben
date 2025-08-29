@@ -26,6 +26,7 @@ type Config struct {
 	FocusDuration      time.Duration `json:"focus_duration"`
 	ShortBreakDuration time.Duration `json:"short_break_duration"`
 	LongBreakDuration  time.Duration `json:"long_break_duration"`
+	LongBreakInterval  int           `json:"long_break_interval"`
 }
 
 func Load() (*Config, error) {
@@ -43,6 +44,7 @@ func Load() (*Config, error) {
 		FocusDuration:      25 * time.Minute,
 		ShortBreakDuration: 5 * time.Minute,
 		LongBreakDuration:  15 * time.Minute,
+		LongBreakInterval:  4, // Default to 4 pomodoros for a long break
 	}
 
 	path, err := configPath()
